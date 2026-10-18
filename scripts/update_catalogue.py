@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
-"""Met à jour le catalogue Blokees depuis la collection publique Transforverse.
+"""Actualise les fiches Blokees Transformers depuis Transforverse.
 
-Conserve les fiches existantes. Les nouveaux produits sont ajoutés uniquement si
-leur identification comme produit Blokees Transformers est raisonnablement claire.
-Les prix et promotions sont des instantanés de la boutique, pas une garantie.
+Conserve les fiches existantes, et classe les nouveaux produits lorsque
+la gamme est explicitement identifiable dans leur titre.
 """
 import datetime as dt
 import json
 import pathlib
 import re
-import urllib.request
 import unicodedata
+import urllib.request
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 CATALOGUE = ROOT / 'catalogue.json'
@@ -22,6 +21,26 @@ def normaliser(texte):
     texte = unicodedata.normalize('NFKD', str(texte or ''))
     texte = ''.join(c for c in texte if not unicodedata.combining(c))
     return re.sub(r'[^a-z0-9]+', ' ', texte.lower()).strip()
+
+
+def classer_serie(titre):
+    """Retourne une gamme uniquement si son nom figure clairement dans le titre."""
+    titre = normaliser(titre)
+    regles = (
+        ('Classic Class', r'\bclassic class\b'),
+        ('Galaxy Defender', r'\bgalaxy defender\b'),
+        ('Galaxy Version', r'\bgalaxy version\b'),
+        ('Shining Version', r'\bshining version\b'),
+        ('Action Edition', r'\baction edition\b'),
+    )
+    correspondances = [nom for nom, motif in regles if re.search(motif, titre)]
+    if len(correspondances) == 1:
+        return correspondances[0]
+    if 'calendrier' in titre and 'avent' in titre:
+        return 'Éditions spéciales'
+    if 'advent calendar' in titre:
+        return 'Éditions spéciales'
+    return 'À classer'
 
 
 def recuperer_produits():
@@ -46,9 +65,7 @@ def correspondance(fiche, produit):
     numero = str(fiche.get('seriesNumber') or fiche.get('numéro de série') or '').lstrip('0')
     if not nom or not all(mot in titre.split() for mot in nom.split()):
         return False
-    if serie == 'classic class' and 'classic class' not in titre:
-        return False
-    if serie and serie != 'classic class' and serie not in titre:
+    if serie not in ('', 'a classer') and serie not in titre:
         return False
     if numero and not re.search(r'(?<!\d)0*' + re.escape(numero) + r'(?!\d)', titre):
         return False
@@ -56,10 +73,9 @@ def correspondance(fiche, produit):
 
 
 def prix_variante(produit):
-    variantes = produit.get('variants') or []
     prix = []
     reductions = []
-    for variante in variantes:
+    for variante in produit.get('variants') or []:
         try:
             montant = float(variante['price'])
             prix.append(montant)
@@ -68,7 +84,6 @@ def prix_variante(produit):
                 reductions.append(True)
         except (ValueError, TypeError, KeyError):
             continue
-    # Prix non publié si plusieurs variantes ont des prix différents.
     return (prix[0] if prix and len(set(prix)) == 1 else None,
             bool(reductions) if prix else None)
 
@@ -76,14 +91,12 @@ def prix_variante(produit):
 def image_produit(produit):
     images = produit.get('images') or []
     url = images[0].get('src', '') if images else ''
-    return url if url.startswith('https://') else None
+    return url if isinstance(url, str) and url.startswith('https://') else None
 
 
 def est_blokees_transformers(produit):
     titre = normaliser(produit.get('title'))
     tags = normaliser(produit.get('tags'))
-    # Le catalogue source est la collection Blokees; exiger Transformers
-    # dans le titre ou les étiquettes avant d'ajouter une nouvelle fiche.
     return 'transformers' in titre.split() or 'transformers' in tags.split()
 
 
@@ -93,9 +106,18 @@ def main():
     fiches = donnees[cle]
     produits = recuperer_produits()
     aujourd_hui = dt.datetime.now(dt.timezone.utc).date().isoformat()
-    existants = {str(f.get('productUrl') or f.get('productUrl', '')).rstrip('/') for f in fiches}
+    existants = {str(f.get('productUrl') or '').rstrip('/') for f in fiches if f.get('productUrl')}
     nouveaux = 0
     mis_a_jour = 0
+    classes = 0
+
+    # Classe les fiches déjà importées, sans modifier les gammes déjà définies.
+    for fiche in fiches:
+        if normaliser(fiche.get('series')) == 'a classer':
+            serie = classer_serie(fiche.get('name') or '')
+            if serie != 'À classer':
+                fiche['series'] = serie
+                classes += 1
 
     for fiche in fiches:
         candidats = [p for p in produits if correspondance(fiche, p)]
@@ -116,12 +138,11 @@ def main():
         mis_a_jour += 1
 
     for produit in produits:
-        url = BASE + '/products/' + produit.get('handle', '')
-        if not produit.get('handle') or url.rstrip('/') in existants:
+        if not produit.get('handle'):
             continue
-        if not est_blokees_transformers(produit):
+        url = BASE + '/products/' + produit['handle']
+        if url.rstrip('/') in existants or not est_blokees_transformers(produit):
             continue
-        # Évite de créer des doublons sur les produits déjà présents sans URL.
         if any(correspondance(fiche, produit) for fiche in fiches):
             continue
         prix, promo = prix_variante(produit)
@@ -129,7 +150,7 @@ def main():
         nouvelle = {
             'id': 'transforverse-' + str(produit['id']),
             'name': titre,
-            'series': 'À classer',
+            'series': classer_serie(titre),
             'seriesNumber': '',
             'sku': None,
             'price': prix,
@@ -149,9 +170,11 @@ def main():
     donnees['updatedAt'] = aujourd_hui
     donnees['sourceCheckedAt'] = dt.datetime.now(dt.timezone.utc).isoformat()
     CATALOGUE.write_text(json.dumps(donnees, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-    print(f'{mis_a_jour} fiches actualisées, {nouveaux} nouveaux produits, {len(fiches)} fiches au total')
-    print('Les promotions sont déduites des prix barrés de la boutique; vérification humaine conseillée.')
+    print(f'{mis_a_jour} fiches actualisées, {nouveaux} nouveaux produits, '
+          f'{classes} fiches reclassées, {len(fiches)} fiches au total')
+    print('Prix et promotions indicatifs, à vérifier sur la boutique.')
 
 
 if __name__ == '__main__':
     main()
+TT
