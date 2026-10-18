@@ -608,7 +608,7 @@
     {
       "id": "transforverse-15088997400924",
       "name": "Transformers One Vague 2 Set Galaxy Version 07 Blokees Model-Kits",
-      "series": "À classer",
+      "series": "Galaxy Version",
       "seriesNumber": "",
       "sku": null,
       "price": 8.99,
@@ -624,7 +624,7 @@
     {
       "id": "transforverse-9651772162396",
       "name": "Transformers One Set Galaxy Version 05 Model Kit Blokees",
-      "series": "À classer",
+      "series": "Galaxy Version",
       "seriesNumber": "",
       "sku": null,
       "price": 8.99,
@@ -640,7 +640,7 @@
     {
       "id": "transforverse-9493327216988",
       "name": "Optimus Primal 04 Classic Class Transformers Model Kit Blokees",
-      "series": "À classer",
+      "series": "Classic Class",
       "seriesNumber": "",
       "sku": null,
       "price": 15.99,
@@ -656,7 +656,7 @@
     {
       "id": "transforverse-9493322662236",
       "name": "Optimus Prime 09 Classic Class Transformers Model Kit Blokees",
-      "series": "À classer",
+      "series": "Classic Class",
       "seriesNumber": "",
       "sku": null,
       "price": 17.99,
@@ -672,5 +672,5 @@
   ],
   "imagesUpdatedAt": "2026-10-18T20:03:54.555727+00:00",
   "imagesMatched": 27,
-  "sourceCheckedAt": "2026-10-18T20:48:59.694290+00:00"
+  "sourceCheckedAt": "2026-10-18T21:55:34.627116+00:00"
 }
