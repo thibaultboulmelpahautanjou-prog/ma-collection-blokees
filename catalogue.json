@@ -371,7 +371,7 @@
       "availability": "À vérifier",
       "new": false,
       "promo": false,
-      "image": "",
+      "image": "https://cdn.shopify.com/s/files/1/0754/5346/4924/files/BlokeesClassicClass22Megatron1.png?v=1768332257",
       "productUrl": "https://transforverse.eu/products/megatron-classic-class-22-model-kit-blokees-dark-of-the-moon",
       "alternateUrl": "",
       "alternatePrice": null
@@ -388,8 +388,8 @@
       "availability": "À vérifier",
       "new": false,
       "promo": false,
-      "image": "",
-      "productUrl": "",
+      "image": "https://cdn.shopify.com/s/files/1/0754/5346/4924/files/BlokeesClassicClass23Bumblebee3_2b69e10f-ff72-42c1-9386-917f1323965d.png?v=1768331956",
+      "productUrl": "https://transforverse.eu/products/bumblebee-classic-class-20-model-kit-blokees-dark-of-the-moon",
       "alternateUrl": "https://www.laposte.fr/boutique/transformers-classic-class-23-dark-of-the-moon-bumblebee/p/mp-600582534",
       "alternatePrice": null
     },
@@ -405,8 +405,8 @@
       "availability": "À vérifier",
       "new": false,
       "promo": false,
-      "image": "",
-      "productUrl": "",
+      "image": "https://cdn.shopify.com/s/files/1/0754/5346/4924/files/SentinelPrimeBlokees_19.jpg?v=1773989282",
+      "productUrl": "https://transforverse.eu/products/sentinal-prime-classic-14-gamme-blokees",
       "alternateUrl": "",
       "alternatePrice": null
     },
@@ -638,7 +638,7 @@
       "alternatePrice": null
     }
   ],
-  "imagesUpdatedAt": "2026-10-19T07:40:37.725517+00:00",
-  "imagesMatched": 31,
+  "imagesUpdatedAt": "2026-10-21T04:42:49.296912+00:00",
+  "imagesMatched": 35,
   "sourceCheckedAt": "2026-10-19T08:26:12.085344+00:00"
 }
